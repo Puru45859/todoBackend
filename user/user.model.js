@@ -11,6 +11,8 @@ var newSchema = new Schema({
   isActive: { type: Boolean, default: false },
   creationDate: { type: Date },
   updationDate: { type: Date },
+  oldPass: { type: String },
+  newPass: { type: String },
 });
 
 module.exports = mongoose.model("user", newSchema);

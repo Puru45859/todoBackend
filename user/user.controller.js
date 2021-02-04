@@ -3,6 +3,97 @@ const bcrypt = require("bcrypt");
 const saltRounds = 5;
 var jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+
+exports.resetPassword = async (req, res) => {
+  console.log("enter");
+  const pass = req.body;
+  console.log("pass", pass);
+  try {
+    console.log("inside try");
+    const old = await Detail.findOne({ email: req.params.email }, ["token"]);
+    console.log("old", old);
+
+    return res.json({
+      data: pass,
+      status: "SUCCESS",
+      message: "data added successfully.",
+    });
+  } catch (error) {
+    return res.json({
+      status: "FAIL",
+      message: error,
+    });
+  }
+};
+exports.forgotPassword = async (req, res) => {
+  console.log("heyyyy");
+  // const { sendemail } = req.body;
+  try {
+    // console.log("email", req.body.email);
+    const user = await Detail.findOne({ email: req.body.email }, ["email"]);
+    console.log("user", user);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "NO_USER_FOUND",
+        status: "FAIL",
+        message: "User does not exist.",
+      });
+    } else {
+      console.log("in else");
+      let token = crypto.randomBytes(20).toString("hex");
+      console.log("token", token);
+      user.forgotPasswordToken = token;
+      user.save();
+      console.log("user save", user);
+
+      let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        // // host: "imap.gmail.com",
+        port: 587, //587
+        secure: false, // true for 465, false for other ports
+        auth: {
+          //   user: "puru.gamer789@gmail.com", // generated ethereal user
+          //   pass: "puru@12345PURU", // generated ethereal password
+
+          user: "ankitchauhan.mobilyte@gmail.com",
+          pass: "wfapiyjbsbzuirod",
+        },
+        // // tls: {
+        // //   rejectUnauthorized: false,
+        // // },
+      });
+
+      // send mail with defined transport object
+      try {
+        console.log("user MAIL");
+
+        let info = await transporter.sendMail({
+          from: "<puru.thegamer789@gmail.com>",
+          to: req.body.email,
+          subject: "New Mail",
+          text: `<a href = "localhost:8080/api/user/reset-password/${token}`,
+        });
+        console.log("Message sent: %s", info.messageId);
+      } catch (error) {
+        console.log("rtrty", error);
+        return res.status(404).json({
+          error: "mail send ",
+          status: "success",
+          message: error,
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      error: "error",
+      status: "failed",
+      message: error,
+    });
+  }
+};
 
 //deleteDeatils
 exports.deleteDetails = async (req, res) => {
@@ -129,7 +220,7 @@ exports.sendUserDetails = async (req, res) => {
 
 // Login
 exports.verifyDetail = async (req, res) => {
-  if (req.body.username && req.body.email && req.body.password) {
+  if (req.body.email && req.body.password) {
     try {
       let findUserDetail = await Detail.findOne({ email: req.body.email });
       if (findUserDetail) {

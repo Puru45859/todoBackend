@@ -2,6 +2,9 @@ var fetchRouter = require("router");
 var router = fetchRouter();
 const controller = require("../user/user.controller");
 
+router.post("/forgot-Password", controller.forgotPassword); //forgotPassword
+router.get("/reset-password/:email/:token", controller.resetPassword); //reset paswword
+
 // router.delete("/deleteDetail", controller.deleteDetails); //delete detail with query
 router.delete("/deleteDetail/:id", controller.deleteDetails); //delete detail with params
 router.get("/getDetail", controller.getUserDetails); //getDetail
